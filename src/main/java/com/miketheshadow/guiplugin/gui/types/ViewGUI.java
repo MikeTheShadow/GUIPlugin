@@ -9,6 +9,7 @@ import com.miketheshadow.guiplugin.gui.Page;
 import com.miketheshadow.guiplugin.gui.listener.OpenGUI;
 import com.miketheshadow.guiplugin.recipe.CustomRecipe;
 import de.tr7zw.nbtapi.NBTItem;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
@@ -34,6 +35,13 @@ public class ViewGUI extends BaseGUI
         String container = NBTItem.convertItemtoNBT(itemClicked).toString();
         if(guiPlayer.removeAdd && !hasPressedButton(player,itemClicked,craftingInventory)) {
             player.sendMessage("You want to remove item: " + itemClicked.getItemMeta().getDisplayName());
+            CustomRecipe recipe = RecipeDBHandler.getRecipeByIcon(itemClicked);
+            if(recipe != null) {
+                page.removeRecipe(recipe);
+                RecipeDBHandler.removeRecipeByIcon(recipe.getIcon());
+                player.sendMessage(ChatColor.GREEN + "Recipe removed!");
+                return;
+            }
             removeAllSubItems(NBTItem.convertItemtoNBT(itemClicked).toString());
             return;
         }
@@ -49,8 +57,8 @@ public class ViewGUI extends BaseGUI
             Page pageToLoad = new Page("crafting","crafting");
             pageToLoad.setPreviousPage(page);
             guiPlayer.currentPage = pageToLoad;
-            guiPlayer.type = GUIType.CRAFT_GUI;
             resetPage(player,pageToLoad,craftingInventory,guiPlayer);
+            guiPlayer.type = GUIType.CRAFT_GUI;
             CustomRecipe recipe = RecipeDBHandler.getRecipeByIcon(itemClicked);
             guiPlayer.recipe = recipe;
             GUIPlugin.addCraftingButton(craftingInventory,recipe);

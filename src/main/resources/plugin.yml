@@ -7,11 +7,11 @@ authors: [MikeTheShadow]
 commands:
   guiadd:
     description: Adds a gui
-    usage: /<addgui> [GUIName]
+    usage: /<guiadd> [GUIName]
     permission: GUIPlugin.admin
     permission-message: You don't have GUIPlugin.admin permission
   guiopen:
     description: Displays a crafting gui
-    usage: /<opengui> [player] [guiname] (use if adding recipes ->) [levelReq] [laborCost] [moneyCost] [profession]
+    usage: /<guiopen> [player] [guiname] (use if adding recipes ->) [levelReq] [laborCost] [moneyCost] [profession]
     permission: GUIPlugin.gui
     permission-message: You don't have GUIPlugin.gui permission

@@ -16,7 +16,7 @@ public class GUIPlayer {
     public int pageNum = 0;
     //1 = remove mode //2 = add mode
     public boolean removeAdd = false;
-
+    public boolean isCrafting = false;
     @Nullable
     public int levelReq;
 

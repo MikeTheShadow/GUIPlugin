@@ -91,6 +91,18 @@ public class Page extends Document {
         PageDBHandler.updatePage(this);
     }
 
+    public void removeRecipe(CustomRecipe recipe) {
+        for(List<String> stringList : recipes) {
+            for(String single : stringList) {
+                if(recipe.getIcon().equals(single)) {
+                    stringList.remove(single);
+                    PageDBHandler.updatePage(this);
+                    return;
+                }
+            }
+        }
+    }
+
     public String getName() { return name; }
     @Nullable public String getIcon() { return icon; }
     public List<List<String>> getCategories() { return categories; }

@@ -11,9 +11,7 @@ import com.miketheshadow.guiplugin.recipe.CustomRecipe;
 import de.tr7zw.nbtapi.NBTContainer;
 import de.tr7zw.nbtapi.NBTItem;
 import net.milkbowl.vault.economy.Economy;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Material;
+import org.bukkit.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -32,9 +30,12 @@ public final class GUIPlugin extends JavaPlugin {
     //economy
     public static Economy econ;
 
+    //default
+    public static GUIPlugin INSTANCE;
+
     @Override
     public void onEnable() {
-
+        INSTANCE = this;
         if (!setupEconomy()) {
             this.getLogger().severe("Disabled due to no Vault dependency found!");
             Bukkit.getPluginManager().disablePlugin(this);

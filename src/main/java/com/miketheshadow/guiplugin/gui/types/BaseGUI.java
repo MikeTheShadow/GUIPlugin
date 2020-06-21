@@ -8,6 +8,7 @@ import com.miketheshadow.guiplugin.gui.GUIType;
 import com.miketheshadow.guiplugin.gui.Page;
 import com.miketheshadow.guiplugin.gui.listener.OpenGUI;
 import com.miketheshadow.guiplugin.recipe.CustomRecipe;
+import com.miketheshadow.guiplugin.util.CraftingTimerTask;
 import de.tr7zw.nbtapi.NBTItem;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -17,6 +18,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -208,7 +210,7 @@ public class BaseGUI {
         else if(itemName.contains("BACK")) {
             //TODO DO BACK BUTTON STUFF HERE
             if(currentPage.getPreviousPage() != null) {
-                backPage(player,currentPage.getPreviousPage(),craftingInventory);
+                backPage(player,currentPage.getPreviousPage(),craftingInventory,guiPlayer);
                 guiPlayer.currentPage = currentPage.getPreviousPage();
             } else {
                 player.sendMessage(ChatColor.RED + "You cannot go back any further!");
@@ -232,13 +234,17 @@ public class BaseGUI {
         CRAFTING
 
          */
+        
         else if(itemName.contains("CRAFT")) {
             OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(player.getUniqueId());
             CustomRecipe recipe = guiPlayer.recipe;
             double playerBalance = GUIPlugin.econ.getBalance(offlinePlayer);
             int playerProfLevel = UserAPI.getProfLevel(player,recipe.getProfession());
             int playerLaborLevel = UserAPI.getUserLabor(player);
-            if(playerProfLevel < recipe.getLevelReq()) {
+            if(guiPlayer.isCrafting) {
+                player.sendMessage(ChatColor.RED + "You are already crafting this item!");
+            }
+            else if(playerProfLevel < recipe.getLevelReq()) {
                 player.sendMessage(ChatColor.RED + "You are not high enough level to craft this!");
             } else if(!hasItemsForRecipe(player.getInventory(),recipe)) {
                 player.sendMessage(ChatColor.RED + "You do not have the materials to craft this!");
@@ -250,14 +256,9 @@ public class BaseGUI {
             } else if(getSize(player.getInventory()) < recipe.getResults().size()) {
                 player.sendMessage(ChatColor.RED + "You don't have enough inventory space to craft this!");
             } else {
-                GUIPlugin.econ.withdrawPlayer(offlinePlayer,recipe.getMoneyCost());
-                for(ItemStack i : recipe.getMaterials()) {
-                    player.getInventory().removeItem(i);
-                }
-                for(ItemStack i : recipe.getResults()) {
-                    player.getInventory().addItem(i);
-                }
-                UserAPI.addExperienceToProf(player,recipe.getProfession(),recipe.getLaborCost());
+                guiPlayer.isCrafting = true;
+                CraftingTimerTask timerTask = new CraftingTimerTask(offlinePlayer,player,recipe,1);
+                timerTask.start();
             }
         }
 
@@ -292,23 +293,7 @@ public class BaseGUI {
         }
     }
 
-    public static void backPage(Player player,Page page,Inventory inventory) {
-        inventory.clear();
-        addOptionButtons(inventory,player,false);
-        if(isPage(page.getCategories())) {
-            List<String> items = page.getCategories().get(0);
-            for(String item : items) {
-                inventory.addItem(stringToItem(item));
-            }
-        } else if(isPage(page.getRecipes())) {
-            List<String> items = page.getRecipes().get(0);
-            for(String item : items) {
-                inventory.addItem(stringToItem(item));
-            }
-        }
-
-    }
-    public static void resetPage(Player player,Page page,Inventory inventory,GUIPlayer guiPlayer) {
+    public static void backPage(Player player,Page page,Inventory inventory,GUIPlayer guiPlayer) {
         inventory.clear();
         addOptionButtons(inventory,player,false);
         if(isPage(page.getCategories())) {
@@ -323,6 +308,25 @@ public class BaseGUI {
             }
         }
         guiPlayer.type = GUIType.VIEW_GUI;
+        guiPlayer.isCrafting = false;
+    }
+    public static void resetPage(Player player,Page page,Inventory inventory,GUIPlayer guiPlayer) {
+        guiPlayer.isCrafting = false;
+        inventory.clear();
+        addOptionButtons(inventory,player,false);
+        if(isPage(page.getCategories())) {
+            List<String> items = page.getCategories().get(0);
+            for(String item : items) {
+                inventory.addItem(stringToItem(item));
+            }
+        } else if(isPage(page.getRecipes())) {
+            List<String> items = page.getRecipes().get(0);
+            for(String item : items) {
+                inventory.addItem(stringToItem(item));
+            }
+        }
+        guiPlayer.type = GUIType.VIEW_GUI;
+        guiPlayer.isCrafting = false;
     }
 
     public static boolean isPage(List<List<String>> list) {
